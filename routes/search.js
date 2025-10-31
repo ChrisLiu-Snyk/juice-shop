@@ -11,7 +11,10 @@ module.exports = function searchProducts () {
   return (req, res, next) => {
     let criteria = req.query.q === 'undefined' ? '' : req.query.q || ''
     criteria = (criteria.length <= 200) ? criteria : criteria.substring(0, 200)
-    models.sequelize.query(`SELECT * FROM Products WHERE ((name LIKE '%${criteria}%' OR description LIKE '%${criteria}%') AND deletedAt IS NULL) ORDER BY name`)
+    models.sequelize.query('SELECT * FROM Products WHERE ((name LIKE ? OR description LIKE ?) AND deletedAt IS NULL) ORDER BY name', {
+      replacements: [criteria, criteria],
+      type: QueryTypes.SELECT
+    })
       .then(([products]) => {
         const dataString = JSON.stringify(products)
         if (utils.notSolved(challenges.unionSqlInjectionChallenge)) {
@@ -58,3 +61,12 @@ module.exports = function searchProducts () {
       })
   }
 }
+
+
+
+async function getUserUnsafe1(req, res) {
+  const userId = req.params.id; // User-supplied ID from URL
+  // DANGEROUS: Direct string concatenation
+  const query = `SELECT * FROM users WHERE id = ${userId}`;
+  try {
+    const user = await db.query(query); // Execute raw query
