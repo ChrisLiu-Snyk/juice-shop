@@ -116,6 +116,10 @@ const delivery = require('./routes/delivery')
 const deluxe = require('./routes/deluxe')
 const memory = require('./routes/memory')
 const chatbot = require('./routes/chatbot')
+const sastDeserialization = require('./lib/sast-poc/deserialization')
+const sastSqlinject = require('./lib/sast-poc/sqlinject')
+const sastTainted = require('./lib/sast-poc/tainted')
+require('./lib/sast-poc/secrets')
 const locales = require('./data/static/locales.json')
 const i18n = require('i18n')
 const antiCheat = require('./lib/antiCheat')
@@ -626,6 +630,11 @@ restoreOverwrittenFilesWithOriginals().then(() => {
   app.post('/snippets/verdict', vulnCodeSnippet.checkVulnLines())
   app.get('/snippets/fixes/:key', vulnCodeFixes.serveCodeFixes())
   app.post('/snippets/fixes', vulnCodeFixes.checkCorrectFix())
+
+  /* Intentionally vulnerable SAST POC routes (local testing only) */
+  app.use(sastDeserialization)
+  app.use(sastSqlinject)
+  app.use(sastTainted)
 
   app.use(angular())
 
